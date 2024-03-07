@@ -36,7 +36,7 @@ jobs:
 
   deploy-nodejs-backend:
     name: Deploy Node.js Backend to EKS
-   
+    needs: build-and-push-images
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
