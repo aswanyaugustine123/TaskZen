@@ -21,8 +21,8 @@ jobs:
       - name: Build and push Node.js backend Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./taskzen-backend
+          file: ./taskzen-backend/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/nodejs-backend:latest
           
