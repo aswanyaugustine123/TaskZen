@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs-backend
+  template:
+    metadata:
+      labels:
+        app: nodejs-backend
+    spec:
+      containers:
+      - name: nodejs-backend
+        image: ghcr.io/aswanyaugustine123/nodejs-backend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MONGODB_URI
+          value: "mongodb://mongodb-service:27017/taskzen" 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-backend
+spec:
+  selector:
+    app: nodejs-backend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP 
