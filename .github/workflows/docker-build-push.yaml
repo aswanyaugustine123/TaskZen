@@ -34,34 +34,9 @@ jobs:
           push: true
           tags:  ghcr.io/${{ github.repository_owner }}/react-frontend:latest
 
-
-  deploy-mongodb:
-    name: Deploy MongoDB to EKS
-    needs: build-and-push-images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy MongoDB
-        run: |
-          aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
-          kubectl apply -f ./k8s/mongodb-deployment.yaml
-          
-      - name: Wait for MongoDB to be ready
-        run: |
-          kubectl wait --for=condition=available --timeout=600s deployment/mongodb
-
   deploy-nodejs-backend:
     name: Deploy Node.js Backend to EKS
-    needs: deploy-mongodb
+   
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
