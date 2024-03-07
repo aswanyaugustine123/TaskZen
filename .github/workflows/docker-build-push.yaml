@@ -1,39 +1,108 @@
-name: Build and Push Docker images
+name: CI/CD Pipeline
 
 on:
-  workflow_dispatch:
-    inputs:
-      architecture:
-        description: 'Target architecture (e.g., linux/amd64,linux/arm64)'
-        required: true
-        default: 'linux/amd64' # Default to building for Linux on AMD64 processors
+  push:
+    branches:
+      - main # Trigger on push to main branch, adjust as necessary
 
 jobs:
-  build-and-push:
+  build-and-push-images:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.PATTOKEN }}
-    - name: Build and push React frontend Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./frontend
-        file: ./frontend/Dockerfile
-        push: true
-        tags: ghcr.io/${{ github.repository_owner }}/react-frontend:latest
-        platforms: ${{ github.event.inputs.architecture }}
-    - name: Build and push Node.js backend Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./taskzen-backend
-        file: ./taskzen-backend/Dockerfile
-        push: true
-        tags: ghcr.io/${{ github.repository_owner }}/nodejs-backend:latest
-        platforms: ${{ github.event.inputs.architecture }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.PATTOKEN }}
+
+      - name: Build and push Node.js backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/nodejs-backend:latest
+
+      - name: Build and push React frontend Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/react-frontend:latest
+
+  deploy-mongodb:
+    name: Deploy MongoDB to EKS
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy MongoDB
+        run: |
+          aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
+          kubectl apply -f ./k8s/mongodb-deployment.yaml
+          
+      - name: Wait for MongoDB to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=600s deployment/mongodb
+
+  deploy-nodejs-backend:
+    name: Deploy Node.js Backend to EKS
+    needs: deploy-mongodb
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Node.js Backend
+        run: |
+          aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
+          kubectl apply -f ./k8s/nodejs-backend-deployment.yaml
+          
+      - name: Wait for Node.js Backend to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=600s deployment/nodejs-backend
+
+  deploy-react-frontend:
+    name: Deploy React Frontend to EKS
+    needs: deploy-nodejs-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy React Frontend
+        run: |
+          aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
+          kubectl apply -f ./k8s/react-frontend-deployment.yaml
+          
+      - name: Wait for React Frontend to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=600s deployment/react-frontend
