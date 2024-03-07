@@ -19,8 +19,9 @@ spec:
         - containerPort: 3000
         env:
         - name: MONGODB_URI
-          value: "mongodb+srv://aswanyaugustine1992:<password>@democluster.mqu7a.mongodb.net/taskzen?retryWrites=true&w=majority&appName=demoCluster" 
-
+          value: "mongodb+srv://aswanyaugustine1992:<password>@democluster.mqu7a.mongodb.net/taskzen?retryWrites=true&w=majority&appName=demoCluster"
+      imagePullSecrets:
+      - name: ghcr-creds
 ---
 apiVersion: v1
 kind: Service
@@ -33,4 +34,4 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
-  type: ClusterIP 
+  type: ClusterIP
