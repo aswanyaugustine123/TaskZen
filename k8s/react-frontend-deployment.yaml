@@ -20,7 +20,8 @@ spec:
         env:
         - name: REACT_APP_BACKEND_URL
           value: "http://nodejs-backend:3000"
-
+      imagePullSecrets:
+      - name: ghcr-creds
 ---
 apiVersion: v1
 kind: Service
