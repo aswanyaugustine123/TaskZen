@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fullstack-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fullstack-app
+  template:
+    metadata:
+      labels:
+        app: fullstack-app
+    spec:
+      containers:
+        - name: fullstack-app-container
+          image: ghcr.io/aswanyaugustine123/taskzen:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGODB_URI
+              value: "mongodb+srv://aswanyaugustine1992:AnnieGeorge1962@democluster.mqu7a.mongodb.net/taskzen?retryWrites=true&w=majority&appName=demoCluster"
+      imagePullSecrets:
+        - name: ghcr-creds
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: fullstack-app-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: fullstack-app
