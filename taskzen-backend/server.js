@@ -1,15 +1,15 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const taskRoutes = require('./routes/taskRoutes'); 
+const path = require('path');
+const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
-
 
 if (process.env.NODE_ENV !== 'test') {
     mongoose.connect(process.env.MONGODB_URI, {
@@ -21,7 +21,15 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 
-app.use('/api/tasks', taskRoutes); 
+app.use('/api/tasks', taskRoutes);
+
+
+app.use(express.static(path.join(__dirname, 'frontend/build')));
+
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
 
 if (require.main === module) {
     const PORT = process.env.PORT || 3000;
@@ -30,4 +38,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = app; 
+module.exports = app;
