@@ -4,8 +4,8 @@ on:
   workflow_dispatch
 
 jobs:
-  build-and-push-images:
-    name: Build and Push Docker Images
+  build-and-push-image:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,25 +18,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.PATTOKEN }}
 
-      - name: Build and push Node.js backend Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./taskzen-backend
-          file: ./taskzen-backend/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/nodejs-backend:latest
-          
-      - name: Build and push React frontend Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          push: true
-          tags:  ghcr.io/${{ github.repository_owner }}/react-frontend:latest
+          tags: ghcr.io/aswanyaugustine123/taskzen:latest
 
-  deploy-nodejs-backend:
-    name: Deploy Node.js Backend to EKS
-    needs: build-and-push-images
+  deploy-to-eks:
+    name: Deploy to EKS
+    needs: build-and-push-image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -49,35 +41,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy Node.js Backend
+      - name: Update kubeconfig
         run: |
           aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
-          kubectl apply -f ./k8s/nodejs-backend-deployment.yaml
-          
-      - name: Wait for Node.js Backend to be ready
-        run: |
-          kubectl wait --for=condition=available --timeout=600s deployment/nodejs-backend
 
-  deploy-react-frontend:
-    name: Deploy React Frontend to EKS
-    needs: deploy-nodejs-backend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy React Frontend
+      - name: Deploy to EKS
         run: |
-          aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
-          kubectl apply -f ./k8s/react-frontend-deployment.yaml
-          
-      - name: Wait for React Frontend to be ready
-        run: |
-          kubectl wait --for=condition=available --timeout=600s deployment/react-frontend
+          kubectl apply -f ./k8s/deployment.yaml
+          kubectl rollout status deployment/my-deployment
+
