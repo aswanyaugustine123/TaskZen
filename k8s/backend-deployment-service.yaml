@@ -18,19 +18,20 @@ spec:
         ports:
         - containerPort: 3000
         env:
-            - name: MONGODB_URI
-              value: "mongodb+srv://aswanyaugustine1992:AnnieGeorge1962@democluster.mqu7a.mongodb.net/taskzen?retryWrites=true&w=majority&appName=demoCluster"
-     
+          - name: MONGODB_URI
+            value: "mongodb+srv://aswanyaugustine1992:AnnieGeorge1962@democluster.mqu7a.mongodb.net/taskzen?retryWrites=true&w=majority&appName=demoCluster"
       imagePullSecrets:
         - name: ghcr-creds
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: taskzen-backend-service
 spec:
+  type: LoadBalancer
   ports:
-  - port: 3000
+  - port: 80
     targetPort: 3000
   selector:
     app: taskzen-backend
