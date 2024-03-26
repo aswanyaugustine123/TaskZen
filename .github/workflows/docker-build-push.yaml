@@ -67,7 +67,7 @@ jobs:
 
       - name: Deploy Frontend
         run: |
-          sed -i "s|REACT_APP_BACKEND_URL=.*|REACT_APP_BACKEND_URL=http://$LB_IP:3000|g" ./k8s/frontend-deployment-service.yaml
+          sed -i "s|REACT_APP_BACKEND_URL_PLACEHOLDER|http://$LB_IP:3000|g" ./k8s/frontend-deployment-service.yaml
           kubectl apply -f ./k8s/frontend-deployment-service.yaml
 
       - name: Check Frontend Deployment Status
