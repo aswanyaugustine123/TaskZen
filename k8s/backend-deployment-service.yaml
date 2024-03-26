@@ -17,6 +17,8 @@ spec:
         image: ghcr.io/aswanyaugustine123/taskzen-backend:latest
         ports:
         - containerPort: 3000
+      imagePullSecrets:
+        - name: ghcr-creds
 ---
 apiVersion: v1
 kind: Service
