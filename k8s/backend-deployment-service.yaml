@@ -17,6 +17,10 @@ spec:
         image: ghcr.io/aswanyaugustine123/taskzen-backend:latest
         ports:
         - containerPort: 3000
+        env:
+            - name: MONGODB_URI
+              value: "mongodb+srv://aswanyaugustine1992:AnnieGeorge1962@democluster.mqu7a.mongodb.net/taskzen?retryWrites=true&w=majority&appName=demoCluster"
+     
       imagePullSecrets:
         - name: ghcr-creds
 ---
