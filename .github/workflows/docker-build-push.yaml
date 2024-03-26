@@ -59,15 +59,13 @@ jobs:
       - name: Check Backend Deployment Status
         run: kubectl rollout status deployment/taskzen-backend-deployment
 
-      - name: Get LoadBalancer public IP
-        id: get-lb-ip
-        run: |
-          LB_IP=$(kubectl get svc taskzen-backend-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-          echo "::set-output name=lb_ip::$LB_IP"
-
+    
       - name: Deploy Frontend
         run: |
-          sed -i "s|REACT_APP_BACKEND_URL_PLACEHOLDER|http://$LB_IP:3000|g" ./k8s/frontend-deployment-service.yaml
+          LB_IP=$(kubectl get svc taskzen-frontend-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          echo "LoadBalancer IP: $LB_IP"
+          sed -i "s|REACT_APP_BACKEND_URL_PLACEHOLDER|http://$LB_IP|g" ./k8s/frontend-deployment-service.yaml
+          cat ./k8s/frontend-deployment-service.yaml  # Print the file to verify the changes
           kubectl apply -f ./k8s/frontend-deployment-service.yaml
 
       - name: Check Frontend Deployment Status
