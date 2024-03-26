@@ -64,7 +64,7 @@ jobs:
         run: |
          LB_IP=""
           while [ -z "$LB_IP" ]; do
-            LB_IP=$(kubectl get svc taskzen-backend-service  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            LB_IP=$(kubectl get svc taskzen-backend-service  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
             [ -z "$LB_IP" ] && echo "LoadBalancer IP not yet available, waiting..." && sleep 5
           done
           echo "LoadBalancer IP: $LB_IP"
