@@ -20,6 +20,7 @@ import {
   TextField,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import configService from './../ConfigService';
 
 export default function TaskTable({  searchTerm, filter }) {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
@@ -34,7 +35,8 @@ export default function TaskTable({  searchTerm, filter }) {
   }, [tasks]);
 
   const fetchTasks = () => {
-    fetch(`api/tasks`)
+    const url = `${configService.getBackendUrl()}/api/tasks`;
+    fetch(url)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch tasks');
@@ -86,7 +88,8 @@ export default function TaskTable({  searchTerm, filter }) {
   };
 
   const handleDelete = () => {
-    fetch(`api/tasks/${currentRow._id}`, {
+    const url = `${configService.getBackendUrl()}/api/tasks/${currentRow._id}`;
+    fetch(url, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -110,8 +113,8 @@ export default function TaskTable({  searchTerm, filter }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentTask) 
     };
- 
-    fetch(`api/tasks/${currentTask._id}`, requestOptions)
+    const url = `${configService.getBackendUrl()}/api/tasks/${currentTask._id}`;
+    fetch(url, requestOptions)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');

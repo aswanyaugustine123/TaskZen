@@ -1,13 +1,25 @@
-
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
-import ProtectedRoutes from './ProtectedRoutes'; // Assuming you have this component for handling protected routes
+import ProtectedRoutes from './ProtectedRoutes';
+import configService from './ConfigService';
 
 function App() {
+  const [loadingConfig, setLoadingConfig] = useState(true);
+
+  useEffect(() => {
+    async function loadAppConfig() {
+      await configService.loadConfig();
+      setLoadingConfig(false);
+    }
+    loadAppConfig();
+  }, []);
+
+  if (loadingConfig) {
+    return <div>Loading configuration...</div>;
+  }
 
   return (
     <AuthProvider>

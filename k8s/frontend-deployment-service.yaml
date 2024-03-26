@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskzen-frontend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: taskzen-frontend
+  template:
+    metadata:
+      labels:
+        app: taskzen-frontend
+    spec:
+      containers:
+      - name: taskzen-frontend
+        image: ghcr.io/aswanyaugustine123/taskzen-frontend:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: REACT_APP_BACKEND_URL
+          value: "http://taskzen-backend-service:3000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: taskzen-frontend-service
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000 
+  selector:
+    app: taskzen-frontend

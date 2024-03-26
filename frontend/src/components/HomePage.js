@@ -3,7 +3,7 @@ import TaskTable from './TaskTable';
 import Header from './Header';
 import { FormControl, InputLabel, Select, MenuItem, Container, Paper, Grid, Box, Button, Modal, TextField, Typography, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-
+import configService from './../ConfigService';
 
 const style = {
   position: 'absolute',
@@ -50,8 +50,8 @@ const HomePage = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newTask) 
     };
-  
-    fetch(`api/tasks`, requestOptions)
+    const url = `${configService.getBackendUrl()}/api/tasks`;
+    fetch(url, requestOptions)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
